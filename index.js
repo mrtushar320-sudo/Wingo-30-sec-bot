@@ -1,9 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fetch = require('node-fetch');
 
-// আপনার Telegram Bot Token এবং Chat ID বসান
+// আপনার বটের টোকেন এবং চ্যানেলের ইউজারনেম
 const token = '8800231061:AAE6t07bone8iIdChBVpAWUxLc-l8_UDd6c';
-const chatId = '@wingo_Predict_30';
+const chatId = '@wingo_Predict_30'; // পাবলিক চ্যানেলের ইউজারনেম
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -46,7 +46,24 @@ let lastProcessedIssue = "";
 
 async function updateSignal() {
     try {
-        const response = await fetch("https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?pageSize=50&t=" + Date.now());
+        const url = "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?pageSize=50&t=" + Date.now();
+        
+        // আসল ব্রাউজার হেডার যুক্ত করা হয়েছে
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Referer': 'https://dkwin.org/',
+                'Origin': 'https://dkwin.org'
+            }
+        });
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            console.log("API Blocked: Server returned HTML instead of JSON");
+            return;
+        }
+
         const data = await response.json();
         const list = data?.data?.list;
 
@@ -67,7 +84,7 @@ async function updateSignal() {
             bot.sendMessage(chatId, msg, { parse_mode: 'Markdown' });
         }
     } catch (error) {
-        console.error("API Fetch Error:", error);
+        console.error("Fetch Error:", error.message);
     }
 }
 
