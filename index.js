@@ -1,9 +1,8 @@
 const TelegramBot = require('node-telegram-bot-api');
 const fetch = require('node-fetch');
 
-// আপনার বটের টোকেন এবং চ্যানেলের ইউজারনেম
 const token = '8800231061:AAE6t07bone8iIdChBVpAWUxLc-l8_UDd6c';
-const chatId = '@wingo_Predict_30'; // পাবলিক চ্যানেলের ইউজারনেম
+const chatId = '@wingo_Predict_30';
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -46,27 +45,33 @@ let lastProcessedIssue = "";
 
 async function updateSignal() {
     try {
-        const url = "https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?pageSize=50&t=" + Date.now();
+        const url = `https://draw.ar-lottery01.com/WinGo/WinGo_30S/GetHistoryIssuePage.json?pageSize=50&t=${Date.now()}`;
         
-        // আসল ব্রাউজার হেডার যুক্ত করা হয়েছে
         const response = await fetch(url, {
+            method: 'GET',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
                 'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
                 'Referer': 'https://dkwin.org/',
-                'Origin': 'https://dkwin.org'
+                'Origin': 'https://dkwin.org',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'cross-site'
             }
         });
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            console.log("API Blocked: Server returned HTML instead of JSON");
+        const text = await response.text();
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.log("Server IP temporarily restricted by Wingo. Retrying next cycle...");
             return;
         }
 
-        const data = await response.json();
         const list = data?.data?.list;
-
         if (!list || list.length < 5) return;
 
         const latestFinishedIssue = list[0].issueNumber;
